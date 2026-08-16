@@ -1143,6 +1143,8 @@ function renderPaySlips(){
             document.getElementById('pay-detail-employeesNo').value=p.employeesNo!==undefined?p.employeesNo:'';
             // aggregate gross/deductions/net removed; calculated per employee in table
             document.getElementById('pay-detail-status').value=p.statusText||'';
+            const payDetailPostBtn=document.getElementById('pay-detail-post-btn');
+            if(payDetailPostBtn) payDetailPostBtn.style.display=(p.statusText==='Open'||p.statusText==='Draft')?'':'none';
             const head=document.getElementById('pay-detail-emp-head');
             const empBody=document.getElementById('pay-detail-emp-body');
             const empFoot=document.getElementById('pay-detail-emp-foot');
@@ -1313,7 +1315,9 @@ function renderPayrollOperations(){
     const ops=payrollOperationsData.filter(r=>r.payrollNo===payrollNo);
     tb.innerHTML=ops.map((r)=>{
         const i=payrollOperationsData.indexOf(r);
-        return `<tr><td class="text-accent">${r.operationName}</td><td>${r.payMonth}</td><td class="num-cell text-center">${r.employeesNo}</td><td><span class="badge ${r.statusClass||'badge-open'}">${r.status||'Open'}</span></td><td><button class="btn btn-ghost btn-sm" onclick="openPayrollOperationDetail(${i})"><i class="fas fa-eye"></i> View</button></td></tr>`;
+        const locked=isPayrollClosed(r.payrollNo) || r.posted || r.status==='Posted';
+        const btn=locked?'<span class="text-dim">-</span>':'<button class="btn btn-ghost btn-sm" onclick="openPayrollOperationDetail('+i+')"><i class="fas fa-eye"></i> View</button>';
+        return `<tr><td class="text-accent">${r.operationName}</td><td>${r.payMonth}</td><td class="num-cell text-center">${r.employeesNo}</td><td><span class="badge ${r.statusClass||'badge-open'}">${r.status||'Open'}</span></td><td>${btn}</td></tr>`;
     }).join('')||'<tr><td colspan="5" class="text-center text-dim">No operations</td></tr>';
 }
 
@@ -1329,6 +1333,7 @@ function onPayrollHeaderNoChange(payrollNo){
 function openPayrollOperationDetail(idx){
     const op=payrollOperationsData[idx];
     if(!op) return;
+    if(isPayrollClosed(op.payrollNo) || op.posted || op.status==='Posted'){ showToast('This payroll action is posted and cannot be edited.','warn'); return; }
     editingPayrollOperationIdx=idx;
     const payrollNo=op.payrollNo;
     document.getElementById('po-header-payrollNo').value=payrollNo;
@@ -1444,6 +1449,7 @@ function savePayrollOperation(submit){
     const operationName=document.getElementById('po-add-operationName').value.trim();const payMonth=document.getElementById('po-add-payMonth').value;const employeesNo=document.getElementById('po-add-employeesNo').value;
     if(!operationName||!payMonth){showToast('Action Name and Pay Month required','warn');return;}
     const payrollNo=((el)=>el!=null?el.value:undefined)(document.getElementById('po-header-payrollNo'))||'';
+    if(isPayrollClosed(payrollNo)){ showToast('This payroll is posted. Changes are not allowed.','warn'); return; }
     const dup=payrollOperationsData.find((r,i)=>i!==editingPayrollOperationIdx&&r.payrollNo===payrollNo&&r.operationName===operationName);
     if(dup){showToast('This action already exists.','warn');return;}
     const ps=paySlipsData.find(p=>p.payrollNo===payrollNo)||{};const isEdit=editingPayrollOperationIdx!=null&&payrollOperationsData[editingPayrollOperationIdx];
@@ -1459,15 +1465,15 @@ function savePayrollOperation(submit){
 //  PAYROLL JV GENERATION
 // ═══════════════════════════════════════════════════════
 function generatePayrollJVNo(){let max=0;jvData.forEach(r=>{if(!r.id)return;const m=r.id.match(/^PAYROLL-(\d{5})$/);if(m){const n=parseInt(m[1],10);if(n>max)max=n;}});return 'PAYROLL-'+String(max+1).padStart(5,'0');}
-function generatePayrollJV(payrollNo){
+function generatePayrollJV(payrollNo, asPost=false){
     const payroll=paySlipsData.find(p=>p.payrollNo===payrollNo);if(!payroll){showToast('Payroll not found','warn');return;}
     const employees=payroll.employees||[];if(!employees.length){showToast('No employees','warn');return;}
-    const date=formatPayMonth(payroll.payMonth)||payroll.payMonth||new Date().toLocaleDateString('en-US',{day:'2-digit',month:'short'});const curr='USD';const jvNo=generatePayrollJVNo();const lines=[];const subledgerNet={};const controlCode='22401';const controlAccObj=coaData.find(a=>a.code===controlCode);const controlAcc=controlAccObj?controlAccObj.code+' - '+controlAccObj.name:controlCode+' - Payroll Control Account';
+    const date=formatPayMonth(payroll.payMonth)||payroll.payMonth||new Date().toLocaleDateString('en-US',{day:'2-digit',month:'short'});const curr='USD';const jvNo=generatePayrollJVNo();const jvStatus=asPost?'Posted':'Draft';const lines=[];const subledgerNet={};const controlCode='22401';const controlAccObj=coaData.find(a=>a.code===controlCode);const controlAcc=controlAccObj?controlAccObj.code+' - '+controlAccObj.name:controlCode+' - Payroll Control Account';
     function getLedgerCode(acc){return String(acc||'').split(' - ')[0];}
     function addLine(subledger,ledgerCode,desc,amount){
         if(Math.abs(amount)<0.0001)return;const accObj=coaData.find(a=>a.code===ledgerCode);const acc=accObj?accObj.code+' - '+accObj.name:ledgerCode+' - Unknown';
         const isDr=amount>0;const v=fmtNum(Math.abs(amount).toFixed(2));
-        lines.push({date,id:jvNo,acc,subledger,desc,curr,dr:isDr?v:'',cr:isDr?'':v,sysDr:isDr?v:'',sysCr:isDr?'':v,status:'Draft'});
+        lines.push({date,id:jvNo,acc,subledger,desc,curr,dr:isDr?v:'',cr:isDr?'':v,sysDr:isDr?v:'',sysCr:isDr?'':v,status:jvStatus});
         subledgerNet[subledger]=(subledgerNet[subledger]||0)+amount;
     }
     employees.forEach(emp=>{
@@ -1487,10 +1493,39 @@ function generatePayrollJV(payrollNo){
             addLine(subledger,ledgerCode,`Payroll ${payrollNo} | ${op.operationName}`,raw);
         });
     });
-    Object.keys(subledgerNet).forEach(sub=>{const net=subledgerNet[sub];if(Math.abs(net)<0.0001)return;const v=fmtNum(Math.abs(net).toFixed(2));const isDr=net<0;const desc=`Payroll ${payrollNo} | Net Payroll Control`;lines.push({date,id:jvNo,acc:controlAcc,subledger:sub,desc,curr,dr:isDr?v:'',cr:isDr?'':v,sysDr:isDr?v:'',sysCr:isDr?'':v,status:'Draft'});});
+    Object.keys(subledgerNet).forEach(sub=>{const net=subledgerNet[sub];if(Math.abs(net)<0.0001)return;const v=fmtNum(Math.abs(net).toFixed(2));const isDr=net<0;const desc=`Payroll ${payrollNo} | Net Payroll Control`;        lines.push({date,id:jvNo,acc:controlAcc,subledger:sub,desc,curr,dr:isDr?v:'',cr:isDr?'':v,sysDr:isDr?v:'',sysCr:isDr?'':v,status:jvStatus});});
     if(!lines.length){showToast('No JV lines generated.','warn');return;}
-    jvData.push({type:'sep',text:`--- ${jvNo} (Payroll ${payrollNo}) ---`,status:'Draft'});lines.forEach(l=>jvData.push(l));
-    renderJV();showToast(`Payroll JV ${jvNo} generated in Draft.`,'success');
+    jvData.push({type:'sep',text:`--- ${jvNo} (Payroll ${payrollNo}) ---`,status:jvStatus});lines.forEach(l=>jvData.push(l));
+    if(!asPost){
+        renderJV();
+        showToast(`Payroll JV ${jvNo} generated in Draft.`,'success');
+    }
+    return jvNo;
+}
+function postSelectedPayroll(){
+    const payrollNo=document.getElementById('pay-detail-payrollNo').value;
+    if(!payrollNo){showToast('No payroll selected.','warn');return;}
+    const idx=paySlipsData.findIndex(p=>p.payrollNo===payrollNo);
+    if(idx===-1){showToast('Payroll not found','error');return;}
+    postPayroll(idx);
+}
+function postPayroll(idx){
+    const p=paySlipsData[idx];
+    if(!p){showToast('Payroll not found','error');return;}
+    if(!['Open','Draft'].includes(p.statusText)){showToast('Payroll is already posted.','warn');return;}
+    if(!confirm('Post payroll '+p.payrollNo+'? This will generate a journal entry and lock linked operations.'))return;
+    const jvNo=generatePayrollJV(p.payrollNo,true);
+    if(!jvNo)return;
+    p.statusText='Processed';
+    p.statusClass='badge-recon';
+    p.posted=true;
+    payrollOperationsData.filter(op=>op.payrollNo===p.payrollNo).forEach(op=>{op.status='Posted';op.statusClass='badge-recon';op.posted=true;});
+    closeModal('payroll-detail-modal');
+    renderPaySlips();
+    renderPayrollActions();
+    refreshLedgerPages();
+    renderJV();
+    showToast('Payroll '+p.payrollNo+' posted. Journal '+jvNo+' created.','success');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1610,6 +1645,7 @@ renderCOA();renderPayStructures();renderEmployees();renderJV();renderPaySlips();
             </div>
             <div style="padding:15px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
                 <button class="btn btn-ghost" onclick="closeModal('payroll-detail-modal')">Close</button>
+                <button class="btn btn-primary" id='pay-detail-post-btn' onclick='postSelectedPayroll()'>Post</button>
             </div>
         </div>
     </div>
