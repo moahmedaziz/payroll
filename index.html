@@ -564,24 +564,96 @@
 
 <!-- Add Payroll Operation Modal -->
 <div class="modal-overlay" id="add-payroll-operation-modal">
-    <div class="modal-box" style="width:900px;">
-        <div class="modal-header"><h3>Payroll Operation</h3><button class="modal-close" onclick="closeModal('add-payroll-operation-modal')">&times;</button></div>
+    <div class="modal-box" style="width:1200px;">
+        <div class="modal-header">
+            <h3>Add Payroll Action</h3>
+            <button class="modal-close" onclick="closeModal('add-payroll-operation-modal')">&times;</button>
+        </div>
         <div class="modal-body">
             <div class="form-row">
-                <div class="form-group"><label>Action Name</label><select class="form-ctrl" id="po-add-operationName"></select></div>
-                <div class="form-group"><label>Pay Month</label><input type="text" class="form-ctrl" id="po-add-payMonth"></div>
-                <div class="form-group"><label>Employees</label><input type="text" class="form-ctrl" id="po-add-employeesNo" readonly></div>
-                <div class="form-group"><label>Status</label><select class="form-ctrl" id="po-add-status"><option>Open</option><option>Posted</option></select></div>
+                <div class="form-group" style="flex:1;">
+                    <label>Action Name</label>
+                    <select class="form-ctrl" id="po-add-operationName"></select>
+                </div>
             </div>
-            <div class="form-row"><div class="form-group"><label>Select Employees</label><label class="toggle-switch"><input type="checkbox" id="po-upload-employee" onchange="toggleEmployeeUpload(this)"><span class="toggle-slider"></span></label></div></div>
-            <div id="po-add-emp-list-section" style="display:none;margin-top:10px;">
-                <table><thead id="po-add-emp-list-head"><tr></tr></thead><tbody id="po-add-emp-list-body"></tbody></table>
+            <div class="form-row">
+                <div class="form-group" style="flex:1;">
+                    <label>Pay Month (mm/yyyy)</label>
+                    <input type="text" class="form-ctrl" id="po-add-payMonth" placeholder="mm/yyyy">
+                </div>
+                <div class="form-group" style="flex:0.7;">
+                    <label>Employees (Count no of employee uploaded)</label>
+                    <input type="text" class="form-ctrl" id="po-add-employeesNo" value="" readonly>
+                </div>
+                <div class="form-group" style="flex:0.8;">
+                    <label>Status</label>
+                    <select class="form-ctrl" id="po-add-status" disabled>
+                        <option value="Open">Open</option>
+                        <option value="Posted">Posted</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row" style="align-items:center;">
+                <div class="form-group" style="flex:0; margin-bottom:0;">
+                    <label style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
+                        <input type="checkbox" id="po-upload-employee" onchange="toggleEmployeeUpload(this)"> Upload employee
+                    </label>
+                </div>
+            </div>
+            <div id="po-add-emp-list-section" class="form-group" style="display:none; margin-top:10px;">
+                <label style="font-size:0.75rem; margin-bottom:4px; display:block;">Employees</label>
+                <table>
+                    <thead id="po-add-emp-list-head"><tr></tr></thead>
+                    <tbody id="po-add-emp-list-body"></tbody>
+                </table>
             </div>
         </div>
-        <div style="padding:15px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn btn-primary" onclick="savePayrollOperation(true)" style="margin-right:auto;"><i class="fas fa-paper-plane"></i> Submit</button>
             <button class="btn btn-ghost" onclick="closeModal('add-payroll-operation-modal')">Cancel</button>
-            <button class="btn btn-ghost" onclick="savePayrollOperation(false)"><i class="fas fa-save"></i> Save</button>
-            <button class="btn btn-primary" onclick="savePayrollOperation(true)"><i class="fas fa-check"></i> Save & Post</button>
+            <button class="btn btn-primary" onclick="savePayrollOperation()"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Payroll Operation Detail Modal (view only) -->
+<div class="modal-overlay" id="payroll-operation-detail-modal">
+    <div class="modal-box" style="width:800px;">
+        <div class="modal-header">
+            <h3><span id="po-detail-title">Operation Details</span></h3>
+            <button class="modal-close" onclick="closeModal('payroll-operation-detail-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group" style="flex:1;">
+                    <label>Operation name (Overtime)</label>
+                    <input type="text" class="form-ctrl" id="po-detail-operationName" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="flex:1;">
+                    <label>Pay Month (mm/yyyy)</label>
+                    <input type="text" class="form-ctrl" id="po-detail-payMonth" readonly>
+                </div>
+                <div class="form-group" style="flex:0.7;">
+                    <label>Employees (Count no of employee uploaded)</label>
+                    <input type="text" class="form-ctrl" id="po-detail-employeesNo" readonly>
+                </div>
+                <div class="form-group" style="flex:0.8;">
+                    <label>Status</label>
+                    <input type="text" class="form-ctrl" id="po-detail-status" readonly>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label style="font-size:0.75rem; margin-bottom:4px; display:block;">Employees</label>
+                <table>
+                    <thead id="po-detail-emp-head"><tr></tr></thead>
+                    <tbody id="po-detail-emp-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn btn-ghost" onclick="closeModal('payroll-operation-detail-modal')">Close</button>
         </div>
     </div>
 </div>
@@ -1302,75 +1374,143 @@ function renderPayrollActions(){
     const tb=document.getElementById('payroll-actions-body');if(!tb)return;
     tb.innerHTML=paySlipsData.map(r=>`<tr style="cursor:pointer;" onclick="openPayrollActionsRecord('${r.payrollNo}')"><td class="text-accent">${r.payrollNo}</td><td>${r.payMonth}</td><td class="num-cell text-center">${r.employeesNo}</td><td class="num-cell dr-text">$${r.grossPay}</td><td><span class="badge ${r.statusClass}">${r.statusText}</span></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-dim">No payrolls</td></tr>';
 }
-function openPayrollActionsRecord(payrollNo){switchView('payroll_operations');renderPayrollOperations();document.getElementById('po-header-payrollNo').value=payrollNo;onPayrollHeaderNoChange(payrollNo);}
-function renderPayrollOperations(){
-    const payrollNo=((el)=>el!=null?el.value:undefined)(document.getElementById('po-header-payrollNo'))||'';
-    const ops=payrollOperationsData.filter(r=>r.payrollNo===payrollNo);
-    document.getElementById('po-operations-body').innerHTML=ops.map((r,i)=>`<tr><td>${r.operationName}</td><td>${r.payMonth}</td><td class="num-cell text-center">${r.employeesNo||0}</td><td><span class="badge ${r.statusClass||'badge-open'}">${r.status||'Open'}</span></td><td><button class="btn btn-ghost btn-sm" onclick="openPayrollOperationDetail(${payrollOperationsData.indexOf(r)})"><i class="fas fa-eye"></i></button></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-dim">No operations</td></tr>';
-}
+function openPayrollActionsRecord(payrollNo){switchView('payroll_operations');document.getElementById('po-header-payrollNo').value=payrollNo;onPayrollHeaderNoChange(payrollNo);}
+
 function renderPayrollOperations(){
     const tb=document.getElementById('po-operations-body');
+    const table=tb?tb.closest('table'):null;
+    const head=table?table.querySelector('thead tr'):null;
     if(!tb) return;
-    const payrollNo=((el)=>el!=null?el.value:undefined)(document.getElementById('po-header-payrollNo'))||'';
-    const ops=payrollOperationsData.filter(r=>r.payrollNo===payrollNo);
-    tb.innerHTML=ops.map((r)=>{
-        const i=payrollOperationsData.indexOf(r);
-        const locked=isPayrollClosed(r.payrollNo) || r.posted || r.status==='Posted';
-        const btn=locked?'<span class="text-dim">-</span>':'<button class="btn btn-ghost btn-sm" onclick="openPayrollOperationDetail('+i+')"><i class="fas fa-eye"></i> View</button>';
-        return `<tr><td class="text-accent">${r.operationName}</td><td>${r.payMonth}</td><td class="num-cell text-center">${r.employeesNo}</td><td><span class="badge ${r.statusClass||'badge-open'}">${r.status||'Open'}</span></td><td>${btn}</td></tr>`;
-    }).join('')||'<tr><td colspan="5" class="text-center text-dim">No operations</td></tr>';
+    const selectedPayrollNo=(document.getElementById('po-header-payrollNo')?.value||'').trim();
+    const filtered=payrollOperationsData.filter(r=>r.payrollNo===selectedPayrollNo);
+    if(head){
+        head.innerHTML='<th>Payroll No</th><th>Operation Name</th><th>Pay Month (mm/yyyy)</th><th>Employees</th><th>Status</th><th style="text-align:center;">Action</th>';
+    }
+    const rows=filtered.map(r=>{
+        const idx=payrollOperationsData.indexOf(r);
+        const payMonth=r.payMonth!==undefined?r.payMonth:'';
+        const empCount=Array.isArray(r.employeeDetails)?r.employeeDetails.length:(r.employeesNo!==undefined?r.employeesNo:0);
+        const editBtn=r.status!=='Posted'?`<button class="btn btn-ghost btn-sm" onclick="openAddPayrollOperationForm(${idx}); event.stopPropagation();"><i class="fas fa-edit"></i></button>`:'';
+        return `<tr data-idx="${idx}" style="cursor:pointer;" onclick="openPayrollOperationDetail(${idx})">
+            <td>${r.payrollNo||''}</td>
+            <td>${r.operationName}</td>
+            <td class="po-payMonth">${formatPayMonth(payMonth)}</td>
+            <td class="num-cell text-center po-employeesNo">${empCount}</td>
+            <td><span class="badge ${r.statusClass}">${r.status}</span></td>
+            <td style="text-align:center;">${editBtn}</td>
+        </tr>`;
+    }).join('');
+    tb.innerHTML=rows||'<tr><td colspan="6" class="text-center">No records</td></tr>';
 }
 
 function onPayrollHeaderNoChange(payrollNo){
-    const ps=paySlipsData.find(p=>p.payrollNo===payrollNo);
-    if(!ps) return;
-    document.getElementById('po-header-payrollNo').value=ps.payrollNo;
-    document.getElementById('po-header-payMonth').value=formatPayMonth(ps.payMonth)||ps.payMonth;
-    document.getElementById('po-header-employees').value=ps.employeesNo||0;
-    document.getElementById('po-header-status').value=ps.statusText||'Open';
+    const rec=paySlipsData.find(r=>r.payrollNo===payrollNo)||{};
+    const pMonth=document.getElementById('po-header-payMonth');
+    if(pMonth) pMonth.value=rec.payMonth||'';
+    const pEmp=document.getElementById('po-header-employees');
+    if(pEmp) pEmp.value=rec.employeesNo!==undefined?rec.employeesNo:'';
+    const pTot=document.getElementById('po-header-totalAmount');
+    if(pTot) pTot.value=rec.grossPay?'$'+rec.grossPay:'';
     renderPayrollOperations();
 }
 function openPayrollOperationDetail(idx){
     const op=payrollOperationsData[idx];
     if(!op) return;
-    if(isPayrollClosed(op.payrollNo) || op.posted || op.status==='Posted'){ showToast('This payroll action is posted and cannot be edited.','warn'); return; }
-    editingPayrollOperationIdx=idx;
-    const payrollNo=op.payrollNo;
-    document.getElementById('po-header-payrollNo').value=payrollNo;
-    document.getElementById('po-header-payMonth').value=formatPayMonth(op.payMonth)||op.payMonth;
-    document.getElementById('po-header-employees').value=op.employeesNo||0;
-    document.getElementById('po-header-status').value=op.status||'Open';
-    selectedNewOperationEmployees=[...(op.employees||[])];
-    selectedNewOperationEmployeeDetails=[...(op.employeeDetails||[])];
-    selectedPayrollOperation=op.operationName;
-    renderPayrollOperations();
-    openAddPayrollOperationForm(idx);
+    document.getElementById('po-detail-title').textContent=(op.type||'Operation')+' Details';
+    document.getElementById('po-detail-operationName').value=op.operationName||'';
+    document.getElementById('po-detail-payMonth').value=formatPayMonth(op.payMonth)||'';
+    const empCount=Array.isArray(op.employeeDetails)?op.employeeDetails.length:(op.employeesNo!==undefined?op.employeesNo:'');
+    document.getElementById('po-detail-employeesNo').value=empCount;
+    document.getElementById('po-detail-status').value=op.status||'';
+    const tb=document.getElementById('po-detail-emp-body');
+    const head=document.getElementById('po-detail-emp-head');
+    const isOt=(op.type||'').toLowerCase()==='overtime'; const isSl=(op.type||'')==='Staff Loan';
+    const details=op.employeeDetails||[];
+    if(isSl){ const slDetails=(op.employeeDetails||[]); head.innerHTML='<tr><th style="font-size:0.65rem;">No.</th><th style="font-size:0.65rem;">Name</th><th style="font-size:0.65rem;">Branch</th><th style="font-size:0.65rem;">Department</th><th style="font-size:0.65rem;">Type</th><th style="font-size:0.65rem;">Installment Date</th><th style="font-size:0.65rem;">Amount</th></tr>'; const slRows=slDetails.map(e=>{ const txRows=(e.staffLoanTransactions||[]).map(t=>`<tr><td style="font-size:0.7rem;">${e.number||''}</td><td style="font-size:0.7rem;">${e.name||''}</td><td style="font-size:0.7rem;">${e.branch||''}</td><td style="font-size:0.7rem;">${e.department||''}</td><td style="font-size:0.7rem;">${t.transactionType||''}</td><td style="font-size:0.7rem;">${t.installmentDate||''}</td><td class="num-cell" style="font-size:0.7rem;">${t.installmentAmount?fmtNum(t.installmentAmount):''}</td></tr>`).join(''); const totalRow=`<tr style="font-weight:bold;"><td style="font-size:0.7rem;">${e.number||''}</td><td style="font-size:0.7rem;">${e.name||''}</td><td style="font-size:0.7rem;">${e.branch||''}</td><td style="font-size:0.7rem;">${e.department||''}</td><td style="font-size:0.7rem;">Net</td><td style="font-size:0.7rem;"></td><td class="num-cell" style="font-size:0.7rem;">${e.amount?fmtNum(e.amount):''}</td></tr>`; return txRows+totalRow; }).join(''); tb.innerHTML=slRows||'<tr><td colspan="7" class="text-center" style="font-size:0.7rem;">No employees</td></tr>'; } else if(isOt && details.length){
+        head.innerHTML='<tr><th style="font-size:0.65rem;">Employee No.</th><th style="font-size:0.65rem;">Name</th><th style="font-size:0.65rem;">Branch</th><th style="font-size:0.65rem;">Department</th><th style="font-size:0.65rem;">Regular Hours</th><th style="font-size:0.65rem;">Holidays Hours</th><th style="font-size:0.65rem;">Overtime Amount</th></tr>';
+        tb.innerHTML=details.map(e=>{
+            const regularHours=e.regularHours ?? e.otHours ?? '';
+            const holidaysHours=e.holidaysHours ?? '';
+            return `<tr>
+                <td style="font-size:0.7rem;">${e.number||''}</td>
+                <td style="font-size:0.7rem;">${e.name||''}</td>
+                <td style="font-size:0.7rem;">${e.branch||''}</td>
+                <td style="font-size:0.7rem;">${e.department||''}</td>
+                <td class="num-cell" style="font-size:0.7rem;">${regularHours}</td>
+                <td class="num-cell" style="font-size:0.7rem;">${holidaysHours}</td>
+                <td class="num-cell" style="font-size:0.7rem;">${fmtNum(e.amount)}</td>
+            </tr>`;
+        }).join('')||'<tr><td colspan="7" class="text-center" style="font-size:0.7rem;">No employees</td></tr>';
+    } else {
+        head.innerHTML='<tr><th style="font-size:0.65rem;">Employee No.</th><th style="font-size:0.65rem;">Name</th><th style="font-size:0.65rem;">Branch</th><th style="font-size:0.65rem;">Department</th></tr>';
+        const empIds=op.employees||[];
+        const rows=empIds.map(id=>{
+            const e=employeesData.find(x=>x.id===id);
+            if(!e) return '';
+            return `<tr>
+                <td style="font-size:0.7rem;">${e.number||''}</td>
+                <td style="font-size:0.7rem;">${e.name||''}</td>
+                <td style="font-size:0.7rem;">${e.branch||''}</td>
+                <td style="font-size:0.7rem;">${e.department||''}</td>
+            </tr>`;
+        }).join('');
+        tb.innerHTML=rows||'<tr><td colspan="4" class="text-center" style="font-size:0.7rem;">No employees</td></tr>';
+    }
+    openModal('payroll-operation-detail-modal');
 }
 function openAddPayrollOperationForm(idx){
-    editingPayrollOperationIdx=(typeof idx==='number')?idx:null;
-    const opRec=editingPayrollOperationIdx!=null?payrollOperationsData[editingPayrollOperationIdx]:null;
-    const opSel=document.getElementById('po-add-operationName');opSel.innerHTML=getPayrollOperationNameOptions(opRec?opRec.operationName:selectedPayrollOperation);
-    opSel.onchange=function(){onAddOperationNameChange(this.value);};opSel.value=opRec?opRec.operationName:selectedPayrollOperation;opSel.disabled=!!opRec;
-    const payrollNo=((el)=>el!=null?el.value:undefined)(document.getElementById('po-header-payrollNo'))||'';const ps=paySlipsData.find(p=>p.payrollNo===payrollNo)||{};
-    if(opRec){document.getElementById('po-add-payMonth').value=formatPayMonth(opRec.payMonth)||'';document.getElementById('po-add-employeesNo').value=opRec.employeesNo!==undefined?opRec.employeesNo:'';document.getElementById('po-add-status').value=opRec.status||'Open';selectedNewOperationEmployees=opRec.employees?[...opRec.employees]:[];selectedNewOperationEmployeeDetails=opRec.employeeDetails?[...opRec.employeeDetails]:[];}
-    else{document.getElementById('po-add-payMonth').value=formatPayMonth(ps.payMonth)||'';document.getElementById('po-add-employeesNo').value=ps.employeesNo!==undefined?ps.employeesNo:'';document.getElementById('po-add-status').value='Open';selectedNewOperationEmployees=[];selectedNewOperationEmployeeDetails=[];}
-    document.getElementById('po-upload-employee').checked=selectedNewOperationEmployees.length>0;
-    const section=document.getElementById('po-add-emp-list-section');if(section)section.style.display=selectedNewOperationEmployees.length?'':'none';
-    openModal('add-payroll-operation-modal');onAddOperationNameChange(opSel.value);
+    editingPayrollOperationIdx = (typeof idx === 'number') ? idx : null;
+    const opRec=editingPayrollOperationIdx != null ? payrollOperationsData[editingPayrollOperationIdx] : null;
+    const opSel=document.getElementById('po-add-operationName');
+    opSel.innerHTML=getPayrollOperationNameOptions(opRec ? opRec.operationName : selectedPayrollOperation);
+    opSel.onchange=function(){ onAddOperationNameChange(this.value); };
+    opSel.value=opRec ? opRec.operationName : selectedPayrollOperation;
+    opSel.disabled=!!opRec;
+    const payrollNo=document.getElementById('po-header-payrollNo')?.value||'';
+    const ps=paySlipsData.find(p=>p.payrollNo===payrollNo)||{};
+    if(opRec){
+        document.getElementById('po-add-payMonth').value=formatPayMonth(opRec.payMonth)||'';
+        document.getElementById('po-add-employeesNo').value=opRec.employeesNo!==undefined?opRec.employeesNo:'';
+        document.getElementById('po-add-status').value=opRec.status||'Open';
+        selectedNewOperationEmployees=opRec.employees ? [...opRec.employees] : [];
+        selectedNewOperationEmployeeDetails=opRec.employeeDetails ? [...opRec.employeeDetails] : [];
+    } else {
+        document.getElementById('po-add-payMonth').value=formatPayMonth(ps.payMonth)||'';
+        document.getElementById('po-add-employeesNo').value=ps.employeesNo!==undefined?ps.employeesNo:'';
+        document.getElementById('po-add-status').value='Open';
+        document.getElementById('po-upload-employee').checked=false;
+        selectedNewOperationEmployees=[];
+        selectedNewOperationEmployeeDetails=[];
+    }
+    document.getElementById('po-upload-employee').checked = selectedNewOperationEmployees.length > 0;
+    const section=document.getElementById('po-add-emp-list-section');
+    if(section) section.style.display=selectedNewOperationEmployees.length?'':'none';
+    openModal('add-payroll-operation-modal');
+    onAddOperationNameChange(opSel.value);
 }
 function getPayrollOperationNameOptions(selectedType){
     const names=[...new Set(payStructurePayrollOperationsData.map(r=>r.operationName))];const selectedName=((o)=>o!=null?o.operationName:undefined)(payStructurePayrollOperationsData.find(r=>r.operationName===selectedType))||selectedType;
     return '<option value="">Select...</option>'+names.map(n=>`<option value="${n}" ${n===selectedName?'selected':''}>${n}</option>`).join('');
 }
 function onAddOperationNameChange(operationName){
-    const opRec=payStructurePayrollOperationsData.find(r=>r.operationName===operationName);selectedPayComponent='';
+    const opRec=payStructurePayrollOperationsData.find(r=>r.operationName===operationName);
+    selectedPayComponent='';
     const isOt=operationName==='Overtime';
     selectedNewOperationEmployeeDetails=selectedNewOperationEmployees.map(id=>{
-        const e=employeesData.find(x=>x.id===id);if(!e)return null;const existing=selectedNewOperationEmployeeDetails.find(x=>x.id===id);
-        const baseFields={id:e.id,number:e.number||'',name:e.name||'',branch:e.branch||'',department:e.department||'',payStructure:e.payStructure||'',grade:e.grade||'',step:e.step||''};
-        if(isOt&&opRec){const reg=((e)=>e!=null&&e.regularHours!=null?e.regularHours:'0')(existing);const hol=((e)=>e!=null&&e.holidaysHours!=null?e.holidaysHours:'0')(existing);const amount=getOvertimeAmountForEmployee(e,reg,hol,opRec);return{...baseFields,regularHours:reg,holidaysHours:hol,amount};}
-        const amount=getPayrollOperationAmountForEmployee(e,opRec);return{...baseFields,amount};
-    }).filter(Boolean);renderAddPayrollOperationEmployeeList();
+        const e=employeesData.find(x=>x.id===id);
+        if(!e) return null;
+        const existing=selectedNewOperationEmployeeDetails.find(x=>x.id===id);
+        const baseFields={id:e.id, number:e.number||'', name:e.name||'', branch:e.branch||'', department:e.department||'', payStructure:e.payStructure||'', grade:e.grade||'', step:e.step||''};
+        if(isOt && opRec){
+            const reg=existing?.regularHours ?? '0';
+            const hol=existing?.holidaysHours ?? '0';
+            const amount=getOvertimeAmountForEmployee(e, reg, hol, opRec);
+            return {...baseFields, regularHours:reg, holidaysHours:hol, amount};
+        }
+        const amount=getPayrollOperationAmountForEmployee(e, opRec);
+        return {...baseFields, amount};
+    }).filter(Boolean);
+    renderAddPayrollOperationEmployeeList();
 }
 function toggleEmployeeUpload(cb){if(cb.checked)openEmployeeUploadPopup();else closeModal('payroll-employee-upload-modal');}
 function openEmployeeUploadPopup(){renderEmployeeUploadPopupList();openModal('payroll-employee-upload-modal');}
@@ -1400,15 +1540,44 @@ function updatePayrollOperationEmpHours(i,field,value){
     if(operationName==='Overtime'&&opRec){e.amount=getOvertimeAmountForEmployee(e,e.regularHours,e.holidaysHours,opRec);const cell=document.getElementById(`po-emp-amount-${i}`);if(cell)cell.textContent=fmtNum(e.amount);}
 }
 function renderAddPayrollOperationEmployeeList(){
-    const tb=document.getElementById('po-add-emp-list-body');const section=document.getElementById('po-add-emp-list-section');const head=document.getElementById('po-add-emp-list-head');
-    if(!tb||!section)return;const operationName=(document.getElementById('po-add-operationName').value||'').trim();const opRec=payStructurePayrollOperationsData.find(r=>r.operationName===operationName);
-    if(!operationName||!opRec){section.style.display='none';return;}section.style.display='';const isOt=operationName==='Overtime';
-    if(head){if(isOt){head.innerHTML='<tr><th style="font-size:0.65rem;">Emp No</th><th style="font-size:0.65rem;">Name</th><th style="font-size:0.65rem;">Branch</th><th style="font-size:0.65rem;">Dept</th><th style="font-size:0.65rem;">Regular Hrs</th><th style="font-size:0.65rem;">Holiday Hrs</th><th style="font-size:0.65rem;">Amount</th><th style="font-size:0.65rem;">Action</th></tr>';}
-    else{head.innerHTML='<tr><th style="font-size:0.65rem;">Emp No</th><th style="font-size:0.65rem;">Name</th><th style="font-size:0.65rem;">Branch</th><th style="font-size:0.65rem;">Dept</th><th style="font-size:0.65rem;">Amount</th><th style="font-size:0.65rem;">Action</th></tr>';}}
+    const tb=document.getElementById('po-add-emp-list-body');
+    const section=document.getElementById('po-add-emp-list-section');
+    const head=document.getElementById('po-add-emp-list-head');
+    if(!tb || !section) return;
+    const operationName=(document.getElementById('po-add-operationName').value||'').trim();
+    const opRec=payStructurePayrollOperationsData.find(r=>r.operationName===operationName);
+    if(!operationName || !opRec){ section.style.display='none'; return; }
+    section.style.display='';
+    const isOt=operationName==='Overtime';
+    if(head){
+        if(isOt){
+            head.innerHTML='<tr><th style="font-size:0.65rem;">Employee No.</th><th style="font-size:0.65rem;">Name</th><th style="font-size:0.65rem;">Branch</th><th style="font-size:0.65rem;">Department</th><th style="font-size:0.65rem;">Regular Hours</th><th style="font-size:0.65rem;">Holidays Hours</th><th style="font-size:0.65rem;">Amount</th><th style="font-size:0.65rem; text-align:center;">Action</th></tr>';
+        } else {
+            head.innerHTML='<tr><th style="font-size:0.65rem;">Employee No.</th><th style="font-size:0.65rem;">Name</th><th style="font-size:0.65rem;">Branch</th><th style="font-size:0.65rem;">Department</th><th style="font-size:0.65rem;">Amount</th><th style="font-size:0.65rem; text-align:center;">Action</th></tr>';
+        }
+    }
     tb.innerHTML=selectedNewOperationEmployeeDetails.map((e,i)=>{
-        if(isOt){return `<tr><td style="font-size:0.7rem;">${e.number}</td><td style="font-size:0.7rem;">${e.name}</td><td style="font-size:0.7rem;">${e.branch}</td><td style="font-size:0.7rem;">${e.department}</td><td style="font-size:0.7rem;"><input type="number" class="form-ctrl" style="min-width:60px;font-size:0.7rem;padding:2px 4px;" value="${((v)=>v!=null?v:'')(e.regularHours)}" oninput="updatePayrollOperationEmpHours(${i},'regularHours',this.value)"></td><td style="font-size:0.7rem;"><input type="number" class="form-ctrl" style="min-width:60px;font-size:0.7rem;padding:2px 4px;" value="${((v)=>v!=null?v:'')(e.holidaysHours)}" oninput="updatePayrollOperationEmpHours(${i},'holidaysHours',this.value)"></td><td class="num-cell" id="po-emp-amount-${i}" style="font-size:0.7rem;">${fmtNum(e.amount)}</td><td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="removePayrollOperationEmp(${i})"><i class="fas fa-trash"></i></button></td></tr>`;}
-        return `<tr><td style="font-size:0.7rem;">${e.number}</td><td style="font-size:0.7rem;">${e.name}</td><td style="font-size:0.7rem;">${e.branch}</td><td style="font-size:0.7rem;">${e.department}</td><td class="num-cell" style="font-size:0.7rem;">${fmtNum(e.amount)}</td><td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="removePayrollOperationEmp(${i})"><i class="fas fa-trash"></i></button></td></tr>`;
-    }).join('')||(isOt?'<tr><td colspan="8" class="text-center" style="font-size:0.7rem;">No employees</td></tr>':'<tr><td colspan="6" class="text-center" style="font-size:0.7rem;">No employees</td></tr>');
+        if(isOt){
+            return `<tr>
+                <td style="font-size:0.7rem;">${e.number}</td>
+                <td style="font-size:0.7rem;">${e.name}</td>
+                <td style="font-size:0.7rem;">${e.branch}</td>
+                <td style="font-size:0.7rem;">${e.department}</td>
+                <td style="font-size:0.7rem;"><input type="number" class="form-ctrl" style="min-width:60px;font-size:0.7rem;padding:2px 4px;" value="${e.regularHours??''}" oninput="updatePayrollOperationEmpHours(${i},'regularHours',this.value)"></td>
+                <td style="font-size:0.7rem;"><input type="number" class="form-ctrl" style="min-width:60px;font-size:0.7rem;padding:2px 4px;" value="${e.holidaysHours??''}" oninput="updatePayrollOperationEmpHours(${i},'holidaysHours',this.value)"></td>
+                <td class="num-cell" id="po-emp-amount-${i}" style="font-size:0.7rem;">${fmtNum(e.amount)}</td>
+                <td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="removePayrollOperationEmp(${i})"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+        }
+        return `<tr>
+            <td style="font-size:0.7rem;">${e.number}</td>
+            <td style="font-size:0.7rem;">${e.name}</td>
+            <td style="font-size:0.7rem;">${e.branch}</td>
+            <td style="font-size:0.7rem;">${e.department}</td>
+            <td class="num-cell" style="font-size:0.7rem;">${fmtNum(e.amount)}</td>
+            <td style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="removePayrollOperationEmp(${i})"><i class="fas fa-trash"></i></button></td>
+        </tr>`;
+    }).join('')||(isOt?'<tr><td colspan="8" class="text-center" style="font-size:0.7rem;">No employees selected</td></tr>':'<tr><td colspan="6" class="text-center" style="font-size:0.7rem;">No employees selected</td></tr>');
 }
 function setPayComponent(v){
     selectedPayComponent=v;
@@ -1446,19 +1615,46 @@ function renderPayComponentOptions(){
     if(editBtn) editBtn.style.display=locked?'inline-flex':'none';
 }
 function savePayrollOperation(submit){
-    const operationName=document.getElementById('po-add-operationName').value.trim();const payMonth=document.getElementById('po-add-payMonth').value;const employeesNo=document.getElementById('po-add-employeesNo').value;
-    if(!operationName||!payMonth){showToast('Action Name and Pay Month required','warn');return;}
-    const payrollNo=((el)=>el!=null?el.value:undefined)(document.getElementById('po-header-payrollNo'))||'';
-    if(isPayrollClosed(payrollNo)){ showToast('This payroll is posted. Changes are not allowed.','warn'); return; }
-    const dup=payrollOperationsData.find((r,i)=>i!==editingPayrollOperationIdx&&r.payrollNo===payrollNo&&r.operationName===operationName);
-    if(dup){showToast('This action already exists.','warn');return;}
-    const ps=paySlipsData.find(p=>p.payrollNo===payrollNo)||{};const isEdit=editingPayrollOperationIdx!=null&&payrollOperationsData[editingPayrollOperationIdx];
-    const status=submit?'Posted':(isEdit?(payrollOperationsData[editingPayrollOperationIdx].status||'Open'):'Open');const statusClass=status==='Posted'?'badge-recon':'badge-open';
-    const payload={payrollNo,operationName,payComponent:'',payMonth,branch:ps.branch||'',department:ps.department||'',employeesNo:employeesNo?parseInt(employeesNo):0,employees:[...selectedNewOperationEmployees],employeeDetails:[...selectedNewOperationEmployeeDetails],status,statusClass,type:operationName};
-    if(isEdit){payrollOperationsData[editingPayrollOperationIdx]={...payrollOperationsData[editingPayrollOperationIdx],...payload};}else{payrollOperationsData.push(payload);}
+    const operationName=document.getElementById('po-add-operationName').value.trim();
+    const payMonth=document.getElementById('po-add-payMonth').value;
+    const employeesNo=document.getElementById('po-add-employeesNo').value;
+    if(!operationName || !payMonth){ showToast('Please fill in Action Name and Pay Month','error'); return; }
+    const payrollNo=document.getElementById('po-header-payrollNo')?.value||'';
+    const dup=payrollOperationsData.find((r,i)=>i!==editingPayrollOperationIdx && r.payrollNo===payrollNo && r.operationName===operationName);
+    if(dup){ showToast('This action already exists for the selected payroll.','error'); return; }
+    const ps=paySlipsData.find(p=>p.payrollNo===payrollNo)||{};
+    const isEdit=editingPayrollOperationIdx != null && payrollOperationsData[editingPayrollOperationIdx];
+    const status=submit ? 'Posted' : (isEdit ? (payrollOperationsData[editingPayrollOperationIdx].status||'Open') : 'Open');
+    const statusClass=status==='Posted'?'badge-recon':'badge-open';
+    const payload={
+        payrollNo,
+        operationName,
+        payComponent:'',
+        payMonth,
+        branch: ps.branch||'',
+        department: ps.department||'',
+        employeesNo: employeesNo?parseInt(employeesNo):0,
+        employees: [...selectedNewOperationEmployees],
+        employeeDetails: [...selectedNewOperationEmployeeDetails],
+        status,
+        statusClass,
+        type: operationName
+    };
+    if(isEdit){
+        payrollOperationsData[editingPayrollOperationIdx]={...payrollOperationsData[editingPayrollOperationIdx], ...payload};
+    } else {
+        payrollOperationsData.push(payload);
+    }
     editingPayrollOperationIdx=null;
-    const pMonth=document.getElementById('po-header-payMonth');if(pMonth)pMonth.value=formatPayMonth(payMonth);const pEmp=document.getElementById('po-header-employees');if(pEmp)pEmp.value=employeesNo?parseInt(employeesNo):0;const pStatus=document.getElementById('po-header-status');if(pStatus)pStatus.value=status;
-    renderPayrollOperations();closeModal('add-payroll-operation-modal');showToast('Operation '+(isEdit?'updated':'added')+'.','success');
+    const pMonth=document.getElementById('po-header-payMonth');
+    if(pMonth) pMonth.value=formatPayMonth(payMonth);
+    const pEmp=document.getElementById('po-header-employees');
+    if(pEmp) pEmp.value=employeesNo?parseInt(employeesNo):0;
+    const pStatus=document.getElementById('po-header-status');
+    if(pStatus) pStatus.value=status;
+    renderPayrollOperations();
+    closeModal('add-payroll-operation-modal');
+    showToast('Operation '+(isEdit?'updated':'added')+' successfully','info');
 }
 
 // ═══════════════════════════════════════════════════════
