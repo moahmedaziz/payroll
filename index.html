@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payroll Module</title>
+    <title>VTAMS — Financial & Payroll Modules</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="supabase.min.js"></script>
     <style>
         :root {
             --bg-main: #f8fafc; --bg-panel: #ffffff; --bg-card: #ffffff;
@@ -152,7 +153,7 @@
 <body>
 
 <div class="sidebar">
-    <div class="logo">Payroll</div>
+    <div class="logo">VTAMS</div>
     <div class="nav-menu">
         <div class="nav-section" onclick="toggleNavSection(this)"><span>Master Data</span><i class="fas fa-chevron-down toggle-icon"></i></div>
         <div class="nav-group">
@@ -683,6 +684,10 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script>
+// SUPABASE CONNECTION
+const SUPABASE_URL = 'https://uazngspozuvfytzadobt.supabase.co'; 
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhem5nc3BvenV2Znl0emFkb2J0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NTQ5NzEsImV4cCI6MjEwMjUzMDk3MX0.uGz6d7FWJh53tNorTHYqbY8KPIpXZAO6ytW209OoBZ0'; 
+const payrollSupabase = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 // ═══════════════════════════════════════════════════════
 //  UTILITIES
 // ═══════════════════════════════════════════════════════
@@ -1815,6 +1820,31 @@ function filterJV(){
 // ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
+async function loadDepartments() {
+    // Ask Supabase for all departments
+    if(!payrollSupabase) return;
+    const { data, error } = await payrollSupabase.from('departments').select('*');
+    
+    if (error) {
+        console.error("Error loading departments:", error);
+    }
+    
+    // Fallback to local list if Supabase returns empty/fails
+    const depts = (data && data.length) ? data : departmentsData;
+    
+    // Find the Department dropdowns in the Employee modals
+    const deptSelects = document.querySelectorAll('#emp-department, #add-emp-department');
+    
+    deptSelects.forEach(select => {
+        select.innerHTML = '<option value="">Select Department...</option>';
+        depts.forEach(dept => {
+            select.innerHTML += `<option value="${dept.id || dept.name}">${dept.name}</option>`;
+        });
+    });
+}
+
+// Call the function to run it when the page loads
+loadDepartments();
 computeCOABalances();
 renderCOA();renderPayStructures();renderEmployees();renderJV();renderPaySlips();renderPayrollActions();renderStaffLoans();renderStaffLoanPostings();switchView('pay_slips', document.querySelector('.nav-item[onclick*="pay_slips"]'));
     </script>
